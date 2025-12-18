@@ -1,0 +1,419 @@
+---
+id: chapter-15-agentic-behaviors
+title: "Chapter 15: Agentic Behaviors & Decision Making"
+description: "Implement autonomous decision-making and goal-directed behaviors for humanoid robots."
+sidebar_position: 15
+module: 4
+part: 2
+chapter_index: 15
+learning_objectives:
+  - Design behavior trees for robot autonomy
+  - Implement state machines for complex behaviors
+  - Build hierarchical decision-making systems
+  - Handle real-time planning and adaptation
+  - Manage goal prioritization and conflicts
+prerequisites: [11, 12, 14]
+keywords:
+  - Behavior tree
+  - State machine
+  - Planning
+  - Decision making
+  - Autonomy
+---
+
+# Chapter 15: Agentic Behaviors & Decision Making
+
+## Behavior Trees
+
+```python
+from enum import Enum
+
+class Status(Enum):
+    SUCCESS = 1
+    FAILURE = 2
+    RUNNING = 3
+
+class Node:
+    """Base behavior tree node."""
+
+    def tick(self):
+        raise NotImplementedError
+
+class Leaf(Node):
+    """Leaf node (action or condition)."""
+
+    def __init__(self, name, action):
+        self.name = name
+        self.action = action
+
+    def tick(self):
+        result = self.action()
+        return result
+
+class Selector(Node):
+    """Selector node: returns SUCCESS if any child succeeds."""
+
+    def __init__(self, name, children):
+        self.name = name
+        self.children = children
+
+    def tick(self):
+        for child in self.children:
+            result = child.tick()
+            if result != Status.FAILURE:
+                return result
+
+        return Status.FAILURE
+
+class Sequence(Node):
+    """Sequence node: returns SUCCESS if all children succeed."""
+
+    def __init__(self, name, children):
+        self.name = name
+        self.children = children
+
+    def tick(self):
+        for child in self.children:
+            result = child.tick()
+            if result != Status.SUCCESS:
+                return result
+
+        return Status.SUCCESS
+
+class Parallel(Node):
+    """Parallel node: runs all children concurrently."""
+
+    def __init__(self, name, children, success_threshold=None):
+        self.name = name
+        self.children = children
+        self.success_threshold = success_threshold or len(children)
+
+    def tick(self):
+        successful = 0
+        for child in self.children:
+            result = child.tick()
+            if result == Status.SUCCESS:
+                successful += 1
+
+        if successful >= self.success_threshold:
+            return Status.SUCCESS
+        elif successful + len([c for c in self.children if c.tick() == Status.RUNNING]) >= self.success_threshold:
+            return Status.RUNNING
+        else:
+            return Status.FAILURE
+
+# Example: Robot servant behavior tree
+def is_human_present():
+    return Status.SUCCESS if True else Status.FAILURE
+
+def greet_human():
+    print("Hello, how can I help?")
+    return Status.SUCCESS
+
+def ask_for_task():
+    print("What would you like me to do?")
+    return Status.SUCCESS
+
+def execute_task():
+    print("Executing task...")
+    return Status.SUCCESS
+
+robot_tree = Sequence("Robot Servant", [
+    Selector("Greet or Continue", [
+        Leaf("Is human present?", is_human_present),
+        Leaf("Greet", greet_human)
+    ]),
+    Leaf("Ask for task", ask_for_task),
+    Leaf("Execute task", execute_task)
+])
+
+# Run behavior tree
+for i in range(3):
+    print(f"\\nTick {i+1}:")
+    result = robot_tree.tick()
+    print(f"Result: {result}")
+```
+
+## State Machines
+
+```python
+class StateMachine:
+    """Finite state machine for robot behavior."""
+
+    def __init__(self, initial_state):
+        self.current_state = initial_state
+        self.states = {}
+        self.transitions = {}
+
+    def add_state(self, name, on_enter=None, on_exit=None, on_update=None):
+        """Add a state."""
+        self.states[name] = {
+            'on_enter': on_enter,
+            'on_exit': on_exit,
+            'on_update': on_update
+        }
+
+    def add_transition(self, from_state, to_state, condition):
+        """Add state transition."""
+        if from_state not in self.transitions:
+            self.transitions[from_state] = []
+
+        self.transitions[from_state].append({
+            'to': to_state,
+            'condition': condition
+        })
+
+    def update(self):
+        """Update state machine."""
+        # Check transitions
+        if self.current_state in self.transitions:
+            for trans in self.transitions[self.current_state]:
+                if trans['condition']():
+                    # Exit current state
+                    if self.states[self.current_state]['on_exit']:
+                        self.states[self.current_state]['on_exit']()
+
+                    # Enter new state
+                    new_state = trans['to']
+                    if self.states[new_state]['on_enter']:
+                        self.states[new_state]['on_enter']()
+
+                    self.current_state = new_state
+                    break
+
+        # Update current state
+        if self.states[self.current_state]['on_update']:
+            self.states[self.current_state]['on_update']()
+
+# Example: Robot task FSM
+sm = StateMachine('idle')
+
+def on_enter_idle():
+    print("Robot idle, waiting for command")
+
+def on_update_idle():
+    pass
+
+def on_enter_navigation():
+    print("Starting navigation")
+
+def on_update_navigation():
+    print("Moving...")
+
+def on_enter_grasping():
+    print("Preparing to grasp")
+
+def on_update_grasping():
+    print("Grasping object...")
+
+sm.add_state('idle', on_enter_idle, on_update=on_update_idle)
+sm.add_state('navigation', on_enter_navigation, on_update=on_update_navigation)
+sm.add_state('grasping', on_enter_grasping, on_update=on_update_grasping)
+
+command_received = False
+target_reached = False
+task_complete = False
+
+sm.add_transition('idle', 'navigation', lambda: command_received)
+sm.add_transition('navigation', 'grasping', lambda: target_reached)
+sm.add_transition('grasping', 'idle', lambda: task_complete)
+
+# Simulate
+for i in range(5):
+    print(f"\\nStep {i+1}:")
+    if i == 1:
+        command_received = True
+    if i == 2:
+        target_reached = True
+    if i == 3:
+        task_complete = True
+
+    sm.update()
+```
+
+## Hierarchical Planning
+
+```python
+class HierarchicalPlanner:
+    """Plan hierarchical robot tasks."""
+
+    def __init__(self):
+        self.goals = []
+        self.current_plan = []
+
+    def decompose_goal(self, goal, level=0):
+        """Recursively decompose goal into subgoals."""
+        if level > 3:  # Limit hierarchy depth
+            return [goal]
+
+        if goal == 'serve_coffee':
+            return self.decompose_goal('pickup_cup', level+1) + \
+                   self.decompose_goal('pour_coffee', level+1) + \
+                   self.decompose_goal('deliver_cup', level+1)
+
+        elif goal == 'pickup_cup':
+            return [
+                'approach_cup',
+                'plan_grasp',
+                'close_gripper',
+                'lift_cup'
+            ]
+
+        elif goal == 'deliver_cup':
+            return [
+                'navigate_to_human',
+                'approach_human',
+                'extend_arm',
+                'release_cup'
+            ]
+
+        else:
+            return [goal]
+
+    def get_plan(self, high_level_goal):
+        """Get full plan for high-level goal."""
+        self.current_plan = self.decompose_goal(high_level_goal)
+        return self.current_plan
+
+    def execute_plan(self, robot):
+        """Execute plan step by step."""
+        for task in self.current_plan:
+            print(f"Executing: {task}")
+            robot.execute_action(task)
+
+# Usage
+planner = HierarchicalPlanner()
+plan = planner.get_plan('serve_coffee')
+
+print("Full plan:")
+for i, step in enumerate(plan, 1):
+    print(f"{i}. {step}")
+```
+
+## Real-time Replanning
+
+```python
+class ReactivePlanner:
+    """Replan when environment changes."""
+
+    def __init__(self):
+        self.current_plan = []
+        self.replanning_threshold = 0.5
+
+    def is_plan_valid(self, current_state, obstacles):
+        """Check if current plan is still valid."""
+        for step in self.current_plan:
+            # Check for new obstacles on path
+            if self._check_collision(step, obstacles):
+                return False
+
+        return True
+
+    def detect_replanning_needed(self, deviation):
+        """Detect if replanning is needed."""
+        if deviation > self.replanning_threshold:
+            return True
+
+        return False
+
+    def replan(self, current_pos, goal_pos, obstacles):
+        """Generate new plan."""
+        # A* or RRT* planning
+        new_plan = self._astar(current_pos, goal_pos, obstacles)
+        return new_plan
+
+    def _astar(self, start, goal, obstacles):
+        """A* pathfinding."""
+        # Simplified A* implementation
+        path = [start]
+
+        current = start
+        while np.linalg.norm(current - goal) > 0.1:
+            direction = (goal - current) / np.linalg.norm(goal - current)
+
+            # Check for obstacles
+            next_pos = current + direction * 0.1
+
+            if not self._check_collision(next_pos, obstacles):
+                path.append(next_pos)
+                current = next_pos
+            else:
+                # Avoid obstacle
+                perp = np.array([-direction[1], direction[0]])
+                next_pos = current + perp * 0.1
+                path.append(next_pos)
+                current = next_pos
+
+        path.append(goal)
+        return path
+
+    def _check_collision(self, pos, obstacles):
+        """Check collision with obstacles."""
+        for obs in obstacles:
+            dist = np.linalg.norm(pos - obs['center'])
+            if dist < obs['radius']:
+                return True
+        return False
+```
+
+## Goal Management
+
+```python
+class GoalManager:
+    """Manage multiple competing goals."""
+
+    def __init__(self):
+        self.goals = {}  # {goal_id: {'priority': , 'deadline': , 'status': }}
+
+    def add_goal(self, goal_id, priority, deadline=None):
+        """Add a goal."""
+        self.goals[goal_id] = {
+            'priority': priority,
+            'deadline': deadline,
+            'status': 'pending'
+        }
+
+    def get_active_goal(self):
+        """Get highest priority active goal."""
+        active_goals = [g for g in self.goals.values() if g['status'] in ['pending', 'active']]
+
+        if not active_goals:
+            return None
+
+        # Sort by priority (and deadline if urgent)
+        return max(active_goals, key=lambda g: g['priority'])
+
+    def update_goal_status(self, goal_id, status):
+        """Update goal status."""
+        if goal_id in self.goals:
+            self.goals[goal_id]['status'] = status
+
+    def handle_goal_conflict(self, conflicting_goals):
+        """Resolve conflicts between goals."""
+        # Prioritize by priority score
+        scores = {g: self.goals[g]['priority'] for g in conflicting_goals}
+        return max(scores, key=scores.get)
+
+# Usage
+gm = GoalManager()
+gm.add_goal('charge_battery', priority=10)
+gm.add_goal('serve_coffee', priority=5)
+gm.add_goal('greet_visitor', priority=8)
+
+active_goal = gm.get_active_goal()
+print(f"Current goal: {active_goal}")
+```
+
+## Summary
+
+| Component | Purpose |
+|-----------|---------|
+| Behavior Tree | Reactive control |
+| State Machine | Sequential states |
+| Hierarchical Plan | High-level tasks |
+| Reactive Planner | Adapt to changes |
+| Goal Manager | Prioritization |
+
+## Next Steps
+
+The final chapter integrates everything into a complete humanoid robot system!

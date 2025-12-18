@@ -1,0 +1,507 @@
+---
+id: chapter-16-integration-project
+title: "Chapter 16: Integration Project - Build a Complete Humanoid"
+description: "Integrate all learned concepts to build and control a complete humanoid robot system."
+sidebar_position: 16
+module: 4
+part: 2
+chapter_index: 16
+learning_objectives:
+  - Integrate all system components (sensors, actuators, vision, control)
+  - Build a complete humanoid robot simulation
+  - Implement end-to-end autonomous behaviors
+  - Test multi-modal perception and action
+  - Deploy on real hardware (optional)
+prerequisites: [9, 10, 11, 12, 13, 14, 15]
+keywords:
+  - Integration
+  - System design
+  - Complete humanoid
+  - Autonomous behaviors
+  - Deployment
+---
+
+# Chapter 16: Integration Project - Build a Complete Humanoid
+
+## Complete Humanoid Architecture
+
+```python
+import numpy as np
+import torch
+import cv2
+from collections import deque
+
+class CompleteHumanoid:
+    """Integrated humanoid robot system."""
+
+    def __init__(self):
+        # Hardware
+        self.sensors = {
+            'camera': None,
+            'imu': None,
+            'force_sensors': {},
+            'joint_encoders': {}
+        }
+
+        self.actuators = {
+            'arms': {'left': [], 'right': []},
+            'legs': {'left': [], 'right': []},
+            'hands': {'left': [], 'right': []}
+        }
+
+        # Perception
+        self.vision_model = None
+        self.object_detector = None
+        self.semantic_mapper = deque(maxlen=10)
+
+        # Control
+        self.behavior_tree = None
+        self.state_machine = None
+        self.planner = None
+        self.goal_manager = None
+
+        # State
+        self.position = np.array([0, 0, 0])
+        self.orientation = np.eye(3)
+        self.velocity = np.array([0, 0, 0])
+
+    def initialize(self):
+        """Initialize all systems."""
+        print("Initializing humanoid robot...")
+
+        self._init_sensors()
+        self._init_actuators()
+        self._init_perception()
+        self._init_control()
+
+        print("✓ All systems initialized")
+
+    def _init_sensors(self):
+        """Initialize sensor interfaces."""
+        print("  Initializing sensors...")
+        # Camera
+        self.sensors['camera'] = cv2.VideoCapture(0)
+
+        # IMU
+        self.sensors['imu'] = {
+            'accel': np.zeros(3),
+            'gyro': np.zeros(3)
+        }
+
+        # Force sensors in hands
+        self.sensors['force_sensors']['left_hand'] = np.zeros(6)
+        self.sensors['force_sensors']['right_hand'] = np.zeros(6)
+
+    def _init_actuators(self):
+        """Initialize motor controllers."""
+        print("  Initializing actuators...")
+
+        # 6 DOF per arm
+        for arm in ['left', 'right']:
+            self.actuators['arms'][arm] = [0.0] * 6
+
+        # 6 DOF per leg
+        for leg in ['left', 'right']:
+            self.actuators['legs'][leg] = [0.0] * 6
+
+        # 5 fingers per hand
+        for hand in ['left', 'right']:
+            self.actuators['hands'][hand] = [0.0] * 5
+
+    def _init_perception(self):
+        """Initialize vision and perception."""
+        print("  Initializing perception...")
+
+        # Load pre-trained vision model
+        self.vision_model = self._load_vision_model()
+
+    def _init_control(self):
+        """Initialize control systems."""
+        print("  Initializing control...")
+
+        # Behavior tree
+        self.behavior_tree = self._build_behavior_tree()
+
+        # State machine
+        self.state_machine = self._build_state_machine()
+
+        # Planning
+        self.planner = self._create_planner()
+
+        # Goal management
+        self.goal_manager = self._create_goal_manager()
+
+    def run_control_loop(self, frequency=100):
+        """Main control loop."""
+        dt = 1.0 / frequency
+        clock = 0
+
+        while True:
+            # Sensing
+            sensor_data = self._read_sensors()
+
+            # Perception
+            perceived_state = self._process_perception(sensor_data)
+
+            # Decision
+            desired_action = self._make_decision(perceived_state)
+
+            # Action
+            self._execute_action(desired_action)
+
+            # State update
+            self._update_state(sensor_data)
+
+            clock += dt
+
+            if clock % 10 == 0:  # Status every 10 seconds
+                self._print_status()
+
+    def _read_sensors(self):
+        """Read all sensors."""
+        # Camera frame
+        ret, frame = self.sensors['camera'].read()
+
+        # IMU readings
+        imu_data = self.sensors['imu']
+
+        # Force feedback
+        force_data = self.sensors['force_sensors']
+
+        return {
+            'image': frame if ret else None,
+            'imu': imu_data,
+            'forces': force_data
+        }
+
+    def _process_perception(self, sensor_data):
+        """Process sensor data into perception."""
+        perceived = {}
+
+        # Vision processing
+        if sensor_data['image'] is not None:
+            objects = self._detect_objects(sensor_data['image'])
+            perceived['objects'] = objects
+
+        # Inertial processing
+        perceived['imu'] = sensor_data['imu']
+
+        # Force feedback
+        perceived['contact'] = self._analyze_forces(sensor_data['forces'])
+
+        return perceived
+
+    def _make_decision(self, perceived_state):
+        """Make decision based on perception."""
+        # Update behavior tree
+        self.behavior_tree.tick()
+
+        # Update state machine
+        self.state_machine.update()
+
+        # Check for new goals
+        if 'objects' in perceived_state:
+            for obj in perceived_state['objects']:
+                if obj['confidence'] > 0.8:
+                    self.goal_manager.add_goal(
+                        f"interact_{obj['class']}",
+                        priority=5
+                    )
+
+        # Get active goal
+        active_goal = self.goal_manager.get_active_goal()
+
+        # Plan action
+        if active_goal:
+            action = self.planner.plan_action(active_goal)
+        else:
+            action = {'type': 'idle'}
+
+        return action
+
+    def _execute_action(self, action):
+        """Execute desired action."""
+        if action['type'] == 'idle':
+            pass
+
+        elif action['type'] == 'navigate':
+            self._execute_navigation(action['target'])
+
+        elif action['type'] == 'grasp':
+            self._execute_grasp(action['object'])
+
+        elif action['type'] == 'pick_and_place':
+            self._execute_pick_and_place(action['object'], action['destination'])
+
+    def _execute_navigation(self, target):
+        """Navigate to target."""
+        direction = (target - self.position) / np.linalg.norm(target - self.position)
+
+        # Generate walking commands
+        hip_angles, knee_angles = self._generate_walking_trajectory()
+
+        # Send to leg actuators
+        self.actuators['legs']['left'] = hip_angles + knee_angles
+        self.actuators['legs']['right'] = hip_angles + knee_angles
+
+        # Update position
+        self.position += direction * 0.01
+
+    def _execute_grasp(self, obj):
+        """Grasp object."""
+        # Move arm to object
+        arm_target = obj['position'] + np.array([0, 0, 0.1])
+        self._move_arm('right', arm_target)
+
+        # Plan grasp
+        grasp = self._plan_grasp(obj)
+
+        # Execute grasp
+        for i, finger_angle in enumerate(grasp['finger_angles']):
+            self.actuators['hands']['right'][i] = finger_angle
+
+    def _execute_pick_and_place(self, obj, dest):
+        """Execute pick and place."""
+        # Pick phase
+        self._execute_grasp(obj)
+
+        # Move to destination
+        self._move_arm('right', dest + np.array([0, 0, 0.3]))
+
+        # Release
+        for i in range(5):
+            self.actuators['hands']['right'][i] = 0.0
+
+    def _update_state(self, sensor_data):
+        """Update robot state."""
+        # Integrate velocities
+        self.velocity = sensor_data['imu']['accel'] * 0.01
+        self.position += self.velocity * 0.01
+
+    def _detect_objects(self, image):
+        """Detect objects in image."""
+        # Run vision model
+        results = self.vision_model(image)
+
+        objects = []
+        for detection in results:
+            objects.append({
+                'class': detection['class'],
+                'confidence': detection['confidence'],
+                'position': detection['position']
+            })
+
+        return objects
+
+    def _analyze_forces(self, force_data):
+        """Analyze force feedback."""
+        contact = {}
+
+        for sensor_name, forces in force_data.items():
+            magnitude = np.linalg.norm(forces)
+            contact[sensor_name] = magnitude > 1.0  # Contact threshold
+
+        return contact
+
+    def _generate_walking_trajectory(self):
+        """Generate walking joint angles."""
+        phase = 0.5  # Placeholder
+
+        hip_angles = [0.3 * np.sin(2 * np.pi * phase)] * 3
+        knee_angles = [0.2 * np.sin(2 * np.pi * phase)] * 3
+
+        return hip_angles, knee_angles
+
+    def _plan_grasp(self, obj):
+        """Plan grasp for object."""
+        return {
+            'finger_angles': [0.5] * 5  # Placeholder
+        }
+
+    def _move_arm(self, arm, target):
+        """Move arm to target."""
+        # Inverse kinematics
+        angles = self._inverse_kinematics(target)
+
+        # Set actuators
+        self.actuators['arms'][arm] = angles
+
+    def _inverse_kinematics(self, target):
+        """Compute inverse kinematics."""
+        # Placeholder: return random angles
+        return np.random.randn(6) * 0.1
+
+    def _load_vision_model(self):
+        """Load pre-trained vision model."""
+        # Placeholder model
+        class SimpleModel:
+            def __call__(self, image):
+                return [
+                    {'class': 'cup', 'confidence': 0.9, 'position': np.array([0.5, 0.3, 0.7])}
+                ]
+
+        return SimpleModel()
+
+    def _build_behavior_tree(self):
+        """Build behavior tree."""
+        # Simplified behavior tree
+        class BT:
+            def tick(self):
+                pass
+
+        return BT()
+
+    def _build_state_machine(self):
+        """Build state machine."""
+        class SM:
+            def __init__(self):
+                self.state = 'idle'
+
+            def update(self):
+                pass
+
+        return SM()
+
+    def _create_planner(self):
+        """Create motion planner."""
+        class Planner:
+            def plan_action(self, goal):
+                return {'type': 'idle'}
+
+        return Planner()
+
+    def _create_goal_manager(self):
+        """Create goal manager."""
+        class GM:
+            def __init__(self):
+                self.goals = {}
+
+            def add_goal(self, goal_id, priority):
+                self.goals[goal_id] = {'priority': priority}
+
+            def get_active_goal(self):
+                if not self.goals:
+                    return None
+                return max(self.goals, key=lambda g: self.goals[g]['priority'])
+
+        return GM()
+
+    def _print_status(self):
+        """Print robot status."""
+        print(f"Position: {self.position}")
+        print(f"State: {self.state_machine.state}")
+        print(f"Active goals: {len(self.goal_manager.goals)}")
+
+# Usage
+robot = CompleteHumanoid()
+robot.initialize()
+
+# Run in simulation
+try:
+    robot.run_control_loop(frequency=100)
+except KeyboardInterrupt:
+    print("\\nShutting down...")
+```
+
+## Testing and Validation
+
+```python
+class RobotTester:
+    """Test robot capabilities."""
+
+    def __init__(self, robot):
+        self.robot = robot
+        self.results = {}
+
+    def test_vision(self):
+        """Test vision system."""
+        print("Testing vision...")
+
+        # Load test image
+        test_image = cv2.imread('test_image.jpg')
+
+        # Detect objects
+        objects = self.robot._detect_objects(test_image)
+
+        self.results['vision'] = {
+            'detected_objects': len(objects),
+            'status': 'pass' if len(objects) > 0 else 'fail'
+        }
+
+    def test_locomotion(self):
+        """Test walking."""
+        print("Testing locomotion...")
+
+        # Generate gait
+        hip, knee = self.robot._generate_walking_trajectory()
+
+        self.results['locomotion'] = {
+            'gait_generated': len(hip) > 0,
+            'status': 'pass'
+        }
+
+    def test_manipulation(self):
+        """Test grasping."""
+        print("Testing manipulation...")
+
+        # Plan grasp
+        grasp = self.robot._plan_grasp({'position': np.array([0.5, 0.3, 0.7])})
+
+        self.results['manipulation'] = {
+            'grasp_planned': len(grasp['finger_angles']) > 0,
+            'status': 'pass'
+        }
+
+    def test_autonomy(self):
+        """Test autonomous decision making."""
+        print("Testing autonomy...")
+
+        # Simulate perception
+        perceived = {
+            'objects': [{'class': 'cup', 'confidence': 0.9, 'position': np.array([1, 0, 0])}]
+        }
+
+        # Make decision
+        action = self.robot._make_decision(perceived)
+
+        self.results['autonomy'] = {
+            'decision_made': action is not None,
+            'status': 'pass'
+        }
+
+    def print_results(self):
+        """Print test results."""
+        print("\\n=== TEST RESULTS ===")
+        for subsystem, result in self.results.items():
+            print(f"{subsystem}: {result['status'].upper()}")
+
+# Run tests
+tester = RobotTester(robot)
+tester.test_vision()
+tester.test_locomotion()
+tester.test_manipulation()
+tester.test_autonomy()
+tester.print_results()
+```
+
+## Next Steps
+
+You've now learned all the fundamentals of humanoid robotics! Here are topics for continued learning:
+
+1. **Advanced Control**: Model predictive control, reinforcement learning policies
+2. **Collaborative Robotics**: Human-robot interaction, safety standards
+3. **Real Hardware**: ROS integration, deployment on physical robots
+4. **Simulation**: Gazebo, CoppeliaSim, advanced physics
+5. **Machine Learning**: Transfer learning, sim-to-real, domain randomization
+
+## Summary
+
+This comprehensive course covered:
+- **Module 1**: Python, simulation, mathematics, tools
+- **Module 2**: Sensors, actuators, URDF, kinematics
+- **Module 3**: Vision, deep learning, reinforcement learning, neural networks
+- **Module 4**: Walking, grasping, decision-making, integration
+
+You now have the foundation to build sophisticated humanoid robots! Continue learning through research papers, open-source projects, and hands-on experimentation.
+
+**Congratulations on completing the Physical AI & Humanoid Robotics Living Textbook!**
