@@ -120,8 +120,7 @@ const config: Config = {
       copyright: `Copyright © 2025 GIAIC Hackathon. Built with Docusaurus.`,
     },
     prism: {
-      theme: require('prism-react-renderer/themes/github'),
-      darkTheme: require('prism-react-renderer/themes/dracula'),
+      additionalLanguages: ['python', 'javascript', 'typescript', 'bash', 'json'],
     },
   } as any,
 };
