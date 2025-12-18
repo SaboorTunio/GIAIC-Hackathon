@@ -9,7 +9,7 @@ const config: Config = {
   url: 'https://giaic-hackathone.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/Physical-AI---Humanoid-Robotics-Book/',
+  baseUrl: process.env.NODE_ENV === 'production' ? '/Physical-AI---Humanoid-Robotics-Book/' : '/',
 
   // GitHub pages deployment config
   organizationName: 'GIAIC-Hackathone',
