@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "docusaurus start --port 3002",
+    "start": "docusaurus start --port 4000",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
@@ -19,7 +19,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "@docusaurus/core": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",

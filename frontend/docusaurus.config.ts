@@ -1,5 +1,10 @@
 import {Config} from '@docusaurus/types';
 import * as preset from '@docusaurus/preset-classic';
+import path from 'path';
+import {fileURLToPath} from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const config: Config = {
   title: 'Physical AI & Humanoid Robotics',
@@ -18,10 +23,14 @@ const config: Config = {
   deploymentBranch: 'gh-pages',
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   // Even if you don't use internalization, you can use this field to set useful
-  // metadata like html lang. For example, if your site is Chinese, you may want
+  // metadata like html lang. For example, if your user is Chinese, you may want
   // to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'en',
@@ -33,7 +42,7 @@ const config: Config = {
       'classic',
       {
         docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
+          sidebarPath: path.resolve(__dirname, './sidebars.ts'),
           // Please change this to your repo.
           // Remove this line to remove the "edit this page" links.
           editUrl:
@@ -47,7 +56,7 @@ const config: Config = {
             'https://github.com/GIAIC-Hackathone/Physical-AI---Humanoid-Robotics-Book/tree/main/frontend',
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          customCss: path.resolve(__dirname, './src/css/custom.css'),
         },
       } as preset.Options,
     ],
@@ -122,4 +131,4 @@ const config: Config = {
   } as any,
 };
 
-module.exports = config;
+export default config;

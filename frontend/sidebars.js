@@ -1,6 +1,5 @@
-import type {SidebarsConfig} from '@docusaurus/types';
-
-const sidebars: SidebarsConfig = {
+/** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
+const sidebars = {
   tutorialSidebar: [
     {
       type: 'doc',
@@ -118,4 +117,4 @@ const sidebars: SidebarsConfig = {
   ],
 };
 
-export default sidebars;
+module.exports = sidebars;
