@@ -4,7 +4,6 @@ import * as preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'Physical AI & Humanoid Robotics',
   tagline: 'Living Textbook with AI Teaching Assistant',
-  favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
   url: 'https://giaic-hackathone.github.io',
@@ -55,8 +54,6 @@ const config: Config = {
   ],
 
   themeConfig: {
-    // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
     navbar: {
       title: 'Living Textbook',
       logo: {
