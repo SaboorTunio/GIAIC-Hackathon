@@ -46,7 +46,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this line to remove the "edit this page" links.
           editUrl:
-            'https://github.com/GIAIC-Hackathone/Physical-AI---Humanoid-Robotics-Book/tree/main/frontend',
+            'https://github.com/panaversity',
         },
         blog: {
           showReadingTime: true,
@@ -73,7 +73,7 @@ const config: Config = {
           label: 'Textbook',
         },
         {
-          href: 'https://github.com/GIAIC-Hackathone/Physical-AI---Humanoid-Robotics-Book',
+          href: 'https://github.com/SaboorTunio',
           label: 'GitHub',
           position: 'right',
         },
@@ -95,13 +95,10 @@ const config: Config = {
           title: 'Community',
           items: [
             {
-              label: 'GitHub Issues',
-              href: 'https://github.com/GIAIC-Hackathone/Physical-AI---Humanoid-Robotics-Book/issues',
+              label: 'GitHub Panaversity',
+              href: 'https://github.com/Panaversity',
             },
-            {
-              label: 'Discussions',
-              href: 'https://github.com/GIAIC-Hackathone/Physical-AI---Humanoid-Robotics-Book/discussions',
-            },
+           
           ],
         },
         {
@@ -109,12 +106,12 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/GIAIC-Hackathone/Physical-AI---Humanoid-Robotics-Book',
+              href: 'https://github.com/SaboorTunio',
             },
           ],
         },
       ],
-      copyright: `Copyright © 2025 GIAIC Hackathon. Built with Docusaurus.`,
+      copyright: `Copyright © 2025 Abdul Saboor Tunio | Built with passion & code.`,
     },
     prism: {
       additionalLanguages: ['python', 'javascript', 'typescript', 'bash', 'json'],

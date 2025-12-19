@@ -172,7 +172,7 @@
 }
 
 .card:hover .iconContainer {
-  opacity: 0.18;
+  opacity: 50;
 }
 
 .card:hover .arrow {
@@ -228,7 +228,7 @@
   height: 80px;
   border-radius: 12px;
   background: linear-gradient(135deg, currentColor 0%, currentColor 100%);
-  opacity: 0.12;
+  opacity: 0.9;
   margin: 0 auto 16px;
   box-shadow: 0 4px 12px currentColor;
 }
@@ -266,17 +266,17 @@
   margin-top: auto;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(7, 119, 150, 0.6);
 }
 
 [data-theme='dark'] .footer {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(248, 175, 240, 0.6);
 }
 
 .chapterCount {
   padding: 4px 8px;
   background: currentColor;
-  opacity: 0.1;
+  opacity: 100;
   border-radius: 4px;
 }
 

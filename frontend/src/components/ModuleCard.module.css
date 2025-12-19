@@ -95,7 +95,7 @@
   height: 56px;
   border-radius: 8px;
   background: currentColor;
-  opacity: 0.1;
+  opacity: 100;
   margin-bottom: 16px;
 }
 
@@ -141,13 +141,14 @@
 .chapterCount {
   padding: 4px 8px;
   background: currentColor;
-  opacity: 0.1;
+  opacity: 50;
   border-radius: 4px;
 }
 
 .arrow {
   transition: transform 0.3s ease;
-  opacity: 0.6;
+  opacity: 100;
+  font-weight: 700;
 }
 
 @media (max-width: 768px) {
