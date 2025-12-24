@@ -62,6 +62,7 @@ const config: Config = {
     ],
   ],
 
+  themes: ['@docusaurus/theme-live-codeblock'],
   themeConfig: {
     navbar: {
       title: 'Physical AI & Humanoid Robotics Textbook',
@@ -78,6 +79,14 @@ const config: Config = {
           position: 'right',
         },
       ],
+    },
+    // Add the Root component to wrap the entire app
+    announcementBar: {
+      id: 'teaching_assistant',
+      content: '🤖 AI Teaching Assistant is now available! Click the robot icon to ask questions about the content.',
+      backgroundColor: '#6e8efb',
+      textColor: '#fff',
+      isCloseable: true,
     },
     footer: {
       style: 'dark',
