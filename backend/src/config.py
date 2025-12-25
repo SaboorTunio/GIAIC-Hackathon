@@ -81,9 +81,9 @@ def validate_settings() -> tuple[bool, list[str]]:
         if not settings.admin_token:
             errors.append("ADMIN_TOKEN not configured")
 
-    # Validate database URL format
-    if not settings.database_url.startswith("postgresql://"):
-        errors.append("DATABASE_URL must start with 'postgresql://'")
+    # Validate database URL format (only check if configured)
+    if settings.database_url and not settings.database_url.startswith("postgresql://"):
+        errors.append("DATABASE_URL must start with 'postgresql://' if configured")
 
     # Validate Qdrant URL format
     if not settings.qdrant_url.startswith("https://") and settings.environment == "production":

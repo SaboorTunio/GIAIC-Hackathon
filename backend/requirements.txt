@@ -4,7 +4,6 @@ qdrant-client==1.12.2
 openai==1.57.4
 python-dotenv==1.0.1
 sqlalchemy==2.0.36
-asyncpg==0.29.0
 pydantic==2.10.3
 pydantic-settings==2.7.1
 slowapi==0.1.9
