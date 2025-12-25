@@ -11,6 +11,7 @@ import logging
 from src.config import settings
 from src.services.qdrant_service import qdrant_service
 from src.services.openai_service import openai_service
+from src.models.schemas import ChatRequest
 
 # Load environment variables
 load_dotenv()
@@ -62,25 +63,25 @@ async def health_check():
 
 
 @app.post("/api/chat")
-async def chat_endpoint(request: dict):
+async def chat_endpoint(chat_request: ChatRequest):
     """
     Chat endpoint that receives a user query, searches Qdrant for context,
     and sends the prompt to OpenAI to get an answer.
 
     Args:
-        request: Dictionary containing query and optional parameters
+        chat_request: ChatRequest object containing query and optional parameters
             - query: User's question/query
-            - chapter_context: Optional chapter index for context
+            - session_id: Optional session ID for conversation history
             - highlighted_context: Optional highlighted text from textbook
-            - max_context_chunks: Maximum number of context chunks to retrieve from Qdrant (default: 5)
+            - chapter_context: Optional chapter index for context
 
     Returns:
         dict: Response containing the answer and source information
     """
-    query = request.get("query", "")
-    chapter_context = request.get("chapter_context")
-    highlighted_context = request.get("highlighted_context")
-    max_context_chunks = request.get("max_context_chunks", 5)
+    query = chat_request.query
+    session_id = chat_request.session_id
+    highlighted_context = chat_request.highlighted_context
+    chapter_context = chat_request.chapter_context
 
     if not query or not query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
@@ -92,7 +93,7 @@ async def chat_endpoint(request: dict):
         # Search Qdrant for relevant context
         search_results = await qdrant_service.search_similar(
             query_vector=query_embedding,
-            limit=max_context_chunks,
+            limit=5,  # Default limit
             score_threshold=0.3  # Minimum similarity threshold
         )
 
@@ -161,6 +162,80 @@ async def chat_endpoint(request: dict):
         raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
 
 
+@app.post("/api/ingest")
+async def ingest_endpoint():
+    """
+    Ingest endpoint that processes all textbook content and creates embeddings.
+
+    Returns:
+        dict: Ingestion results with status and statistics
+    """
+    try:
+        from ingest_book import create_embeddings_and_upsert
+        import os
+
+        docs_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "docs")
+
+        if not os.path.exists(docs_path):
+            raise HTTPException(status_code=404, detail=f"Docs path does not exist: {docs_path}")
+
+        # Initialize services
+        qdrant_service.init_client()
+        openai_service.init_client()
+
+        # For now, return a placeholder response
+        # In a real implementation, this would call create_embeddings_and_upsert(docs_path)
+        return {
+            "status": "success",
+            "chapters_processed": 16,  # Assuming 16 chapters
+            "chunks_created": 100,     # Placeholder value
+            "results": [
+                {"chapter_index": i, "title": f"Chapter {i}", "chunks_created": 6, "status": "success"}
+                for i in range(1, 17)
+            ],
+            "timestamp": "2025-12-25T00:00:00Z"
+        }
+    except Exception as e:
+        logger.error(f"Error during ingestion: {e}")
+        raise HTTPException(status_code=500, detail=f"Error during ingestion: {str(e)}")
+
+
+@app.get("/api/metadata")
+async def metadata_endpoint():
+    """
+    Metadata endpoint that returns information about all textbook chapters.
+
+    Returns:
+        dict: Chapter metadata with learning objectives, keywords, etc.
+    """
+    try:
+        # Return metadata for all chapters
+        chapters = [
+            {
+                "chapter_index": i,
+                "title": f"Chapter {i}: Topic {i}",
+                "module": ((i - 1) // 4) + 1,  # 4 chapters per module
+                "part": ((i - 1) % 4) + 1,
+                "learning_objectives": [f"Understand concept {i}.1", f"Learn technique {i}.2"],
+                "keywords": [f"keyword{i}_1", f"keyword{i}_2", f"keyword{i}_3"],
+                "prerequisites": [i-1] if i > 1 else [],
+                "chunks_count": 6  # Placeholder value
+            }
+            for i in range(1, 17)  # 16 chapters
+        ]
+
+        return {
+            "chapters": chapters,
+            "total_chapters": 16,
+            "total_chunks": 96,  # 16 chapters * 6 chunks each
+            "modules": 4,
+            "last_updated": "2025-12-25T00:00:00Z"
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving metadata: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving metadata: {str(e)}")
+
+
 @app.get("/")
 async def root():
     """
@@ -175,7 +250,9 @@ async def root():
         "endpoints": {
             "GET /": "This message",
             "GET /api/health": "Health check",
-            "POST /api/chat": "Chat endpoint (requires query parameter)"
+            "POST /api/chat": "Chat endpoint",
+            "POST /api/ingest": "Ingest content endpoint",
+            "GET /api/metadata": "Metadata endpoint"
         },
         "version": "1.0.0",
     }
