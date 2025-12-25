@@ -98,3 +98,6 @@ logs/
 .env.*.local
 tmp/
 temp/
+
+# Windows
+nul
