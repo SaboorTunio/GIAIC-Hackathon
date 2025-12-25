@@ -66,13 +66,6 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
     }
   };
 
-  useEffect(() => {
-    document.addEventListener('mouseup', handleHighlightedText);
-    return () => {
-      document.removeEventListener('mouseup', handleHighlightedText);
-    };
-  }, []);
-
   return (
     <>
       {/* Floating button */}

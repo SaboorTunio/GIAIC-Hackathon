@@ -113,6 +113,11 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+[data-theme='dark'] .messages {
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .messages::-webkit-scrollbar {
@@ -228,7 +233,7 @@
 
 [data-theme='dark'] .message.assistant .messageContent {
   background: rgba(37, 99, 235, 0.1);
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
   border-color: rgba(37, 99, 235, 0.3);
 }
 
