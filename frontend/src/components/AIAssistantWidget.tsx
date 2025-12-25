@@ -45,17 +45,55 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
     setInput('');
     setIsLoading(true);
 
-    // Simulate API call to backend
-    setTimeout(() => {
+    try {
+      // Get currently selected text for context
+      const highlightedText = window.getSelection()?.toString() || undefined;
+
+      // Determine the API URL based on environment
+      const apiUrl = process.env.REACT_APP_API_URL ||
+                    (typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                      ? 'http://localhost:8000'
+                      : '');
+
+      // Call the backend API
+      const response = await fetch(`${apiUrl}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: input,
+          chapter_context: chapterNumber,
+          highlighted_context: highlightedText || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I'm the AI Teaching Assistant for this course. I'm here to help you understand "${chapterTitle}" better. You asked: "${input}"\n\nIn a real implementation, I would connect to the RAG backend to provide context-aware answers based on the textbook content.\n\nTo integrate the real AI assistant, connect this widget to your API endpoint at /api/chat.`,
-        sources: ['Chapter ' + chapterNumber, 'Course Materials'],
+        content: data.answer || data.message || 'Sorry, I could not generate a response.',
+        sources: data.sources || [`Chapter ${chapterNumber}`],
       };
+
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Sorry, I encountered an error while processing your request. Please try again.',
+        sources: [],
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleHighlightedText = () => {
