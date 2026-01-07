@@ -1,55 +1,43 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+- Version change: N/A -> 1.0.0
+- Added sections: All principles and sections as specified
+- Templates requiring updates: N/A
+- Follow-up TODOs: None
+-->
+
+# Evolution of Todo - Phase I Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Python-First Development
+All code must be written in Python 3.13+ with strict adherence to PEP 8 standards and mandatory use of Type Hints throughout the codebase. This ensures code quality, maintainability, and prevents type-related errors during development.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Console Interface
+The application must provide an interactive console-based user interface with a continuous loop that runs until the user explicitly chooses to exit. Text-based inputs and outputs are the primary interaction mechanism.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. In-Memory Data Storage (NON-NEGOTIABLE)
+All data must be stored in-memory using Python lists and dictionaries only. No persistent storage mechanisms, database files, or external storage systems are permitted. Data must be reset when the application restarts.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Spec-Driven Development
+No code implementation is allowed without a corresponding specification in the `specs/` folder. All features must be defined, planned, and documented before implementation begins.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Clean Code Standards
+All code must follow PEP 8 standards and incorporate type hints. Code should be clean, readable, and well-structured with appropriate function and variable naming conventions.
 
-### [PRINCIPLE_6_NAME]
+### VI. Dependency Management with UV
+All project dependencies must be managed using UV as the designated dependency manager. This ensures consistent and efficient package management throughout the project lifecycle.
 
+## Architecture Rules
+The application must run in a continuous interactive loop (`while` loop) until the user explicitly exits.
+Data is temporary and must be reset when the application restarts (No database files).
+Code must follow PEP 8 standards and use Type Hints.
 
-[PRINCIPLE__DESCRIPTION]
-
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
-
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Development Workflow
+Strict Spec-Driven Development: No code is written without a corresponding spec in the `specs/` folder.
+Clean Code: Follow PEP 8 standards and use Type Hints.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+This constitution governs all development activities for the Evolution of Todo - Phase I project. All code contributions, architectural decisions, and development practices must comply with these principles. Any deviations require explicit approval and constitutional amendments.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-01-07 | **Last Amended**: 2026-01-07
